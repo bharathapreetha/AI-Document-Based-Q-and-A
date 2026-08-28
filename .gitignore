@@ -1,0 +1,11 @@
+node_modules/
+dist/
+frontend/node_modules/
+frontend/dist/
+backend/app/uploads/
+backend/app/chroma_db/
+backend/app/documents.json
+backend/app/__pycache__/
+__pycache__/
+*.pyc
+*.log

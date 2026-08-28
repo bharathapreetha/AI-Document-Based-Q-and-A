@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 376 311" role="img" aria-labelledby="title desc">
+  <title id="title">Question and answer illustration</title>
+  <desc id="desc">A document with question and answer bubbles</desc>
+  <path d="M0 9c12 8 20 8 29 0M0 96c10-7 16-8 23-2M0 157c18-5 32-2 40 11M348 0c-7 10-9 22-7 35M334 145c-7 19-3 28 13 32M364 176c7 10 12 11 12 11" fill="none" stroke="#253566" stroke-width="9" stroke-linecap="round"/>
+  <rect x="96" y="66" width="183" height="119" rx="14" fill="#dcecff"/>
+  <path d="M96 168 78 185l27-7" fill="#dcecff"/>
+  <path d="M130 111h112M130 132h112M130 153h92" stroke="#7692FF" stroke-width="11" stroke-linecap="round"/>
+  <circle cx="187" cy="55" r="31" fill="#dcecff" stroke="#7692FF" stroke-width="2"/>
+  <circle cx="187" cy="48" r="9" fill="none" stroke="#7692FF" stroke-width="3"/>
+  <path d="M172 70c9-12 21-12 30 0" fill="none" stroke="#7692FF" stroke-width="3" stroke-linecap="round"/>
+  <path d="M253 28c29-10 61 5 61 28 0 18-19 31-43 31-7 0-14-1-20-3l-13 11 5-16c-7-6-10-13-10-21 0-13 8-24 20-30Z" fill="#7692FF"/>
+  <text x="276" y="73" text-anchor="middle" fill="#091540" font-family="Georgia, serif" font-size="48">?</text>
+  <path d="M45 119c22-14 52-9 67 10 13 17 8 42-10 55l-1 17-14-10c-25 4-48-8-56-27-7-17-2-34 14-45Z" fill="#7692FF"/>
+  <text x="80" y="172" text-anchor="middle" fill="#091540" font-family="Georgia, serif" font-size="52">?</text>
+  <text x="188" y="273" text-anchor="middle" fill="#f0f4ff" font-family="Georgia, serif" font-size="67" letter-spacing="2">Q&amp;A</text>
+</svg>

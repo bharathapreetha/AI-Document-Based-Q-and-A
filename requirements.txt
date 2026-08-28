@@ -1,0 +1,3 @@
+ langchain-text-splitters
+ langchain-ollama
+ chromadb langchain-chroma
