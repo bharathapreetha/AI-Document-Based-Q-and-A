@@ -11,6 +11,7 @@ function App() {
   const [file, setFile] = useState(null)
   const [question, setQuestion] = useState('')
   const [answer, setAnswer] = useState('')
+  const [fileHash, setFileHash] = useState('')
   const [uploadMessage, setUploadMessage] = useState('')
   const [source, setSource] = useState('')
   const [documentText, setDocumentText] = useState('')
@@ -63,6 +64,7 @@ function App() {
     setUploadMessage(data.message || 'PDF uploaded successfully.')
     setDocumentText(data.text || 'No readable text was found in this PDF.')
     setSource(data.filename || file.name)
+    setFileHash(data.file_hash || '')
     
    
   } catch (error) {
@@ -97,6 +99,7 @@ function App() {
           },
           body : JSON.stringify({
             question:question,
+            file_hash: fileHash,
           }),
         }
       );
@@ -125,7 +128,7 @@ function App() {
       <section className="workspace">
         <div className="project-logo">
           <img
-            src="/qa-motive.svg"
+            src="/policy_pdf.png"
             alt="Question and answer illustration for document-based questions"
           />
         </div>
@@ -227,7 +230,7 @@ function App() {
               <p className="error">{error}</p>
             ) : (
               <>
-                <p className="answer">{answer}</p>
+                <p className="answer" style={{ WhiteSpace : 'pre-line'}}>{answer}</p>
                 <div className="source">
                   <FileGlyph />
                   <span>

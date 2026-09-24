@@ -5,6 +5,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from pypdf import PdfReader
 from langchain_ollama import OllamaEmbeddings, OllamaLLM
 from langchain_chroma import Chroma
+from langchain_community.document_loaders import PyPDFLoader
 from pydantic import BaseModel
 from io import BytesIO
 import hashlib
@@ -20,6 +21,7 @@ UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 class QuestionRequest(BaseModel):
     question :str
+    file_hash: str
 
 app = FastAPI()
 
@@ -61,7 +63,7 @@ async def upload_document(file: UploadFile = File(...)):
         return {
             "status": "duplicate",
             "message": "This document has already been uploaded.",
-            "filename": documents[file_hash]["filename"]
+           "filename": documents[file_hash]["filename"]
         }
 
     # Save PDF
@@ -87,7 +89,8 @@ async def upload_document(file: UploadFile = File(...)):
         "message": "Document uploaded and processed successfully.",
         "filename": file.filename,
         "pages": len(reader.pages),
-        "chunks": len(chunks)
+        "chunks": len(chunks),
+        "file_hash": file_hash
     }
     
 
@@ -112,7 +115,15 @@ async def ask_question(request: QuestionRequest):
         persist_directory = str(CHROMA_DIR)
     )
     
-    results = vectorstore.similarity_search(request.question, k=4)
+    results = vectorstore.similarity_search(request.question, k=4, filter={"file_hash": request.file_hash})
+    
+    #print("\n ________________________Retrived DOCUMENT________________________")
+    #for i,doc in enumerate(results):
+       # print(f"Chunk {i}")
+        #print(f"Metadata : {doc.metadata}")
+       # print(f"content {doc.page_content}")
+    
+    #print("________________________END DOCUMENT________________________")
     
     context = "\n\n".join(
         doc.page_content for doc in results
@@ -120,15 +131,26 @@ async def ask_question(request: QuestionRequest):
     
     # Prompt
     prompt = f"""
-        You are a document question-answering assistant.
+    You are a document question-answering assistant.
 
-        Answer the user's question ONLY using the provided context.
+    Answer the user's question using ONLY the information provided in the Context.
 
-        If the answer cannot be found in the context, say:
-        "I could not find the answer in the provided document."
-
-        Do not use your own knowledge.
-        Do not make up information.
+    Rules:
+    - Do not use your own knowledge.
+    - Do not invent or assume information.
+    - Answer the user's question directly.
+    - Do not repeat or rewrite the user's question.
+    - Use simple, clear language.
+    - If the Context does not contain enough information to answer the question, say:
+    "I couldn't find this information in the uploaded documents."
+    - Do not add information that is not supported by the Context.
+    - Identify the most important investor-related risks,
+        responsibilities, limitations, fees, data-sharing,
+        and conditions from the Context.
+    - Prioritize information that could affect an investor's decision.
+    - Do not select statements merely because they appear in the Context.
+    - Do not claim something is safe, legitimate, or guaranteed unless
+    the document explicitly establishes that.
 
         Context:
         {context}
@@ -150,20 +172,27 @@ async def ask_question(request: QuestionRequest):
 # RAG Begins
 def ingest_document(file_path, filename, file_hash):
    
-    text = extract_text_from_pdf(file_path)
-
-    if not text.strip():
-        raise HTTPException(
-            400,
-            "PDF does not contain readable text"
-        )
+    #text = extract_text_from_pdf(file_path)
+    # raise HTTPException( 400,"PDF does not contain readable text")
+    
+    #Load PDF page by page
+    loader = PyPDFLoader(str(file_path))
+    document = loader.load()
+    
+    if not document:
+        raise HTTPException(400, "PDF does not contain readable text")
 
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=1000,
-        chunk_overlap=200
+        chunk_overlap=150
     )
 
-    chunks = splitter.split_text(text)
+    chunks = splitter.split_documents(document)
+    
+    #print("TOTAL CHUNKS:", len(chunks))
+    #for i, chunk in enumerate(chunks[:5], start=1):
+        #print(f"\n--- CHUNK {i} ---")
+        #print(chunk.page_content[:500])
 
 
     embeddings = OllamaEmbeddings(
@@ -177,13 +206,14 @@ def ingest_document(file_path, filename, file_hash):
     )
 
     vectorstore.add_texts(
-        texts=chunks,
+        texts=[chunk.page_content for chunk in chunks],
         metadatas=[
             {
+                **chunk.metadata,
                 "filename": filename,
                 "file_hash": file_hash
             }
-            for _ in chunks
+            for chunk in chunks
         ]
     )
 
@@ -216,7 +246,11 @@ def load_documents():
 
 # Save document metadata
 def save_documents(documents):
+    
     DOCUMENT_FILE.parent.mkdir(parents=True, exist_ok=True)
+    
+    print("UPLOAD DIRECTORY:", UPLOAD_DIR)
+    
     with open(DOCUMENT_FILE, "w", encoding="utf-8") as f:
         json.dump(documents, f, indent=4)
         
